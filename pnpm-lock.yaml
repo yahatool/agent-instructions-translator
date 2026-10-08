@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@types/node':
-        specifier: ^22.10.0
-        version: 22.20.3
+        specifier: ^26.6.4
+        version: 26.6.4
       '@types/vscode':
         specifier: ^1.95.0
         version: 1.137.0
@@ -162,8 +162,8 @@ packages:
   '@textlint/types@15.8.0':
     resolution: {integrity: sha512-Anhc6y5736YIsvqae0U6k0YmB2M/QVHkEeOv2aydAn/WIkdI69dCOiDbe3/+RagS3qstFTSFWJzNRA2lUjv19w==}
 
-  '@types/node@22.20.3':
-    resolution: {integrity: sha512-DZmzkmwHzXrLPAXPyKNDzlIwMMUZCVacoD25ywdy5YTKGbOx/2ld+Q38Im2zJ0vBuZP5Prd3VZutKZyXwkOS8A==}
+  '@types/node@26.6.4':
+    resolution: {integrity: sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -1037,8 +1037,8 @@ packages:
   underscore@1.13.8:
     resolution: {integrity: sha512-DXtD3ZtEQzc7M8m4cXotyHR+FAS18C64asBYY5vqZexfYryNNnDc02W4hKg3rdQuqOYas1jkseX0+nZXjTXnvQ==}
 
-  undici-types@6.21.0:
-    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+  undici-types@8.9.0:
+    resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
   undici@7.29.1:
     resolution: {integrity: sha512-RYONW2MeafgYlkVOKYKkA/Ag7BmXqgIWCa8t1m0JcxrQg9pI9lEqRhAOruOBCbAohOa/gkCF+iPi9hrgvTzu6Q==}
@@ -1115,36 +1115,36 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@azure/core-auth@1.11.0(supports-color@7.2.0)':
+  '@azure/core-auth@1.11.0':
     dependencies:
       '@azure/abort-controller': 2.2.0
-      '@azure/core-util': 1.14.0(supports-color@7.2.0)
+      '@azure/core-util': 1.14.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@azure/core-client@1.11.1(supports-color@7.2.0)':
+  '@azure/core-client@1.11.1':
     dependencies:
       '@azure/abort-controller': 2.2.0
-      '@azure/core-auth': 1.11.0(supports-color@7.2.0)
-      '@azure/core-rest-pipeline': 1.25.0(supports-color@7.2.0)
+      '@azure/core-auth': 1.11.0
+      '@azure/core-rest-pipeline': 1.25.0
       '@azure/core-tracing': 1.4.0
-      '@azure/core-util': 1.14.0(supports-color@7.2.0)
-      '@azure/logger': 1.4.0(supports-color@7.2.0)
+      '@azure/core-util': 1.14.0
+      '@azure/logger': 1.4.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
   '@azure/core-process@1.0.0': {}
 
-  '@azure/core-rest-pipeline@1.25.0(supports-color@7.2.0)':
+  '@azure/core-rest-pipeline@1.25.0':
     dependencies:
       '@azure/abort-controller': 2.2.0
-      '@azure/core-auth': 1.11.0(supports-color@7.2.0)
+      '@azure/core-auth': 1.11.0
       '@azure/core-tracing': 1.4.0
-      '@azure/core-util': 1.14.0(supports-color@7.2.0)
-      '@azure/logger': 1.4.0(supports-color@7.2.0)
-      '@typespec/ts-http-runtime': 0.3.9(supports-color@7.2.0)
+      '@azure/core-util': 1.14.0
+      '@azure/logger': 1.4.0
+      '@typespec/ts-http-runtime': 0.3.9
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -1153,24 +1153,24 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@azure/core-util@1.14.0(supports-color@7.2.0)':
+  '@azure/core-util@1.14.0':
     dependencies:
       '@azure/abort-controller': 2.2.0
-      '@typespec/ts-http-runtime': 0.3.9(supports-color@7.2.0)
+      '@typespec/ts-http-runtime': 0.3.9
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@azure/identity@4.13.3(supports-color@7.2.0)':
+  '@azure/identity@4.13.3':
     dependencies:
       '@azure/abort-controller': 2.2.0
-      '@azure/core-auth': 1.11.0(supports-color@7.2.0)
-      '@azure/core-client': 1.11.1(supports-color@7.2.0)
+      '@azure/core-auth': 1.11.0
+      '@azure/core-client': 1.11.1
       '@azure/core-process': 1.0.0
-      '@azure/core-rest-pipeline': 1.25.0(supports-color@7.2.0)
+      '@azure/core-rest-pipeline': 1.25.0
       '@azure/core-tracing': 1.4.0
-      '@azure/core-util': 1.14.0(supports-color@7.2.0)
-      '@azure/logger': 1.4.0(supports-color@7.2.0)
+      '@azure/core-util': 1.14.0
+      '@azure/logger': 1.4.0
       '@azure/msal-browser': 5.22.0
       '@azure/msal-node': 6.0.1
       open: 10.2.0
@@ -1178,9 +1178,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@azure/logger@1.4.0(supports-color@7.2.0)':
+  '@azure/logger@1.4.0':
     dependencies:
-      '@typespec/ts-http-runtime': 0.3.9(supports-color@7.2.0)
+      '@typespec/ts-http-runtime': 0.3.9
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -1220,18 +1220,18 @@ snapshots:
     dependencies:
       '@secretlint/types': 10.2.2
 
-  '@secretlint/config-loader@10.2.2(supports-color@7.2.0)':
+  '@secretlint/config-loader@10.2.2':
     dependencies:
       '@secretlint/profiler': 10.2.2
       '@secretlint/resolver': 10.2.2
       '@secretlint/types': 10.2.2
       ajv: 8.20.0
       debug: 4.4.3(supports-color@7.2.0)
-      rc-config-loader: 4.1.4(supports-color@7.2.0)
+      rc-config-loader: 4.1.4
     transitivePeerDependencies:
       - supports-color
 
-  '@secretlint/core@10.2.2(supports-color@7.2.0)':
+  '@secretlint/core@10.2.2':
     dependencies:
       '@secretlint/profiler': 10.2.2
       '@secretlint/types': 10.2.2
@@ -1240,11 +1240,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@secretlint/formatter@10.2.2(supports-color@7.2.0)':
+  '@secretlint/formatter@10.2.2':
     dependencies:
       '@secretlint/resolver': 10.2.2
       '@secretlint/types': 10.2.2
-      '@textlint/linter-formatter': 15.8.0(supports-color@7.2.0)
+      '@textlint/linter-formatter': 15.8.0
       '@textlint/module-interop': 15.8.0
       '@textlint/types': 15.8.0
       chalk: 5.6.2
@@ -1256,11 +1256,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@secretlint/node@10.2.2(supports-color@7.2.0)':
+  '@secretlint/node@10.2.2':
     dependencies:
-      '@secretlint/config-loader': 10.2.2(supports-color@7.2.0)
-      '@secretlint/core': 10.2.2(supports-color@7.2.0)
-      '@secretlint/formatter': 10.2.2(supports-color@7.2.0)
+      '@secretlint/config-loader': 10.2.2
+      '@secretlint/core': 10.2.2
+      '@secretlint/formatter': 10.2.2
       '@secretlint/profiler': 10.2.2
       '@secretlint/source-creator': 10.2.2
       '@secretlint/types': 10.2.2
@@ -1294,7 +1294,7 @@ snapshots:
 
   '@textlint/ast-node-types@15.8.0': {}
 
-  '@textlint/linter-formatter@15.8.0(supports-color@7.2.0)':
+  '@textlint/linter-formatter@15.8.0':
     dependencies:
       '@azu/format-text': 1.0.2
       '@azu/style-format': 1.0.1
@@ -1320,9 +1320,9 @@ snapshots:
     dependencies:
       '@textlint/ast-node-types': 15.8.0
 
-  '@types/node@22.20.3':
+  '@types/node@26.6.4':
     dependencies:
-      undici-types: 6.21.0
+      undici-types: 8.9.0
 
   '@types/normalize-package-data@2.4.4': {}
 
@@ -1330,10 +1330,10 @@ snapshots:
 
   '@types/vscode@1.137.0': {}
 
-  '@typespec/ts-http-runtime@0.3.9(supports-color@7.2.0)':
+  '@typespec/ts-http-runtime@0.3.9':
     dependencies:
-      http-proxy-agent: 7.0.2(supports-color@7.2.0)
-      https-proxy-agent: 7.0.6(supports-color@7.2.0)
+      http-proxy-agent: 7.0.2
+      https-proxy-agent: 7.0.6
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -1379,8 +1379,8 @@ snapshots:
 
   '@vscode/vsce@3.9.2(supports-color@7.2.0)':
     dependencies:
-      '@azure/identity': 4.13.3(supports-color@7.2.0)
-      '@secretlint/node': 10.2.2(supports-color@7.2.0)
+      '@azure/identity': 4.13.3
+      '@secretlint/node': 10.2.2
       '@secretlint/secretlint-formatter-sarif': 10.2.2
       '@secretlint/secretlint-rule-no-dotenv': 10.2.2
       '@secretlint/secretlint-rule-preset-recommend': 10.2.2
@@ -1762,14 +1762,14 @@ snapshots:
       domutils: 3.2.2
       entities: 7.0.1
 
-  http-proxy-agent@7.0.2(supports-color@7.2.0):
+  http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.4
       debug: 4.4.3(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
 
-  https-proxy-agent@7.0.6(supports-color@7.2.0):
+  https-proxy-agent@7.0.6:
     dependencies:
       agent-base: 7.1.4
       debug: 4.4.3(supports-color@7.2.0)
@@ -2059,7 +2059,7 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  rc-config-loader@4.1.4(supports-color@7.2.0):
+  rc-config-loader@4.1.4:
     dependencies:
       debug: 4.4.3(supports-color@7.2.0)
       js-yaml: 4.3.2
@@ -2114,8 +2114,8 @@ snapshots:
   secretlint@10.2.2(supports-color@7.2.0):
     dependencies:
       '@secretlint/config-creator': 10.2.2
-      '@secretlint/formatter': 10.2.2(supports-color@7.2.0)
-      '@secretlint/node': 10.2.2(supports-color@7.2.0)
+      '@secretlint/formatter': 10.2.2
+      '@secretlint/node': 10.2.2
       '@secretlint/profiler': 10.2.2
       debug: 4.4.3(supports-color@7.2.0)
       globby: 14.1.0
@@ -2287,7 +2287,7 @@ snapshots:
 
   underscore@1.13.8: {}
 
-  undici-types@6.21.0: {}
+  undici-types@8.9.0: {}
 
   undici@7.29.1: {}
 
