@@ -178,7 +178,7 @@
     "package:bundled": "npm run compile && npm run build:argos && node scripts/package_bundled.mjs"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
+    "@types/node": "^26.6.4",
     "@types/vscode": "^1.95.0",
     "@vscode/vsce": "^3.2.1",
     "typescript": "^5.7.2"
