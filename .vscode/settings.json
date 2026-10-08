@@ -1,0 +1,4 @@
+{
+  "agentInstructionsTranslator.enabled": true,
+  "agentInstructionsTranslator.mode": "bidirectional"
+}

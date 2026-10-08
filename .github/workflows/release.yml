@@ -1,0 +1,230 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish to Marketplace (select a version tag to enable)
+        type: boolean
+        default: false
+      pre_release:
+        description: Build/publish as a Marketplace pre-release
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  prepare:
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      pre_release: ${{ steps.release.outputs.pre_release }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+      - name: Validate release version
+        id: release
+        env:
+          WILL_PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          PRE_RELEASE: ${{ endsWith(github.ref_name, '-pre') || inputs.pre_release }}
+        run: node scripts/validate_release.mjs
+      - name: Require a commit on the default branch for publishing
+        if: github.event_name == 'push' || inputs.publish
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: git merge-base --is-ancestor HEAD "origin/$DEFAULT_BRANCH"
+      - name: Require manual approval protection before building for publication
+        if: github.event_name == 'push' || inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/check_release_environment.mjs
+      - name: Prepare the reviewed changelog for publication
+        if: github.event_name == 'push' || inputs.publish
+        run: node scripts/release_notes.mjs --output "$RUNNER_TEMP/release-notes.md" --summary
+      - name: Save reviewed release notes
+        if: github.event_name == 'push' || inputs.publish
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-notes
+          path: ${{ runner.temp }}/release-notes.md
+          if-no-files-found: error
+          retention-days: 14
+
+  build:
+    name: Build ${{ matrix.target }}
+    needs: prepare
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: win32-x64
+            runner: windows-2022
+          - target: darwin-x64
+            runner: macos-15-intel
+          - target: darwin-arm64
+            runner: macos-15
+          - target: linux-x64
+            runner: ubuntu-22.04
+          - target: linux-arm64
+            runner: ubuntu-22.04-arm
+    env:
+      TARGET: ${{ matrix.target }}
+      PRE_RELEASE: ${{ needs.prepare.outputs.pre_release }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .build/model-cache
+          key: argos-models-${{ hashFiles('scripts/build_argos_bundle.py') }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run compile
+      - name: Build native Argos runtime and models
+        run: python scripts/build_argos_bundle.py --target "$TARGET"
+      - name: Audit Python packages installed by the build
+        run: |
+          python -m pip install --disable-pip-version-check pip-audit==2.9.0
+          python scripts/audit_argos.py --target "$TARGET"
+      - name: Package VSIX
+        run: |
+          if [ "$PRE_RELEASE" = "true" ]; then
+            node scripts/package_bundled.mjs --pre-release
+          else
+            node scripts/package_bundled.mjs
+          fi
+      - name: Verify packaged models and translate in both directions
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: python scripts/verify_vsix.py --target "$TARGET" --version "$RELEASE_VERSION"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: vsix-${{ matrix.target }}
+          path: |
+            dist/*.vsix
+            dist/*.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  publish:
+    name: Publish to Marketplace
+    if: github.event_name == 'push' || inputs.publish
+    needs: [prepare, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: marketplace
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      MARKETPLACE_AUTH_MODE: ${{ vars.MARKETPLACE_AUTH_MODE || 'pat' }}
+      ARGOS_MODEL_REDISTRIBUTION_CONFIRMED: ${{ vars.ARGOS_MODEL_REDISTRIBUTION_CONFIRMED }}
+      PRE_RELEASE: ${{ needs.prepare.outputs.pre_release }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Recheck that required reviewers have not been removed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/check_release_environment.mjs
+      - name: Check publishing configuration
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+        run: node scripts/publish_vsix.mjs --check
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: vsix-*
+          merge-multiple: true
+          path: dist
+      - name: Verify artifact checksums
+        working-directory: dist
+        run: sha256sum --check *.sha256
+      - name: Authenticate with Microsoft Entra ID
+        if: env.MARKETPLACE_AUTH_MODE == 'entra'
+        uses: azure/login@8216e11d8cd9b42fe925c852af8e76311ff067ac # v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+      - name: Publish every platform package
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: node scripts/publish_vsix.mjs
+
+  release-assets:
+    name: Publish GitHub Release with reviewed notes and VSIX files
+    needs: [prepare, publish]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: vsix-*
+          merge-multiple: true
+          path: dist
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-notes
+          path: dist
+      - name: Attach packages before publishing the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          PRE_RELEASE: ${{ needs.prepare.outputs.pre_release }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            flags=()
+            if [ "$PRE_RELEASE" = "true" ]; then flags+=(--prerelease); fi
+            gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" --notes-file dist/release-notes.md "${flags[@]}"
+          fi
+          gh release upload "$RELEASE_TAG" dist/*.vsix dist/*.sha256 --clobber
+          gh release edit "$RELEASE_TAG" --draft=false --prerelease="$PRE_RELEASE" --notes-file dist/release-notes.md

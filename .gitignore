@@ -1,0 +1,15 @@
+node_modules/
+.pnpm-store/
+out/
+dist/
+**/__pycache__/
+*.vsix
+.vscode-test/
+.agent-instructions-translator/*
+!.agent-instructions-translator/state.json
+!.agent-instructions-translator/native/
+!.agent-instructions-translator/native/**
+coverage/
+.build/
+resources/argos/
+.DS_Store

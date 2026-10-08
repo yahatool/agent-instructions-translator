@@ -1,0 +1,5 @@
+# These optional native helpers are not needed for VSIX packaging or token/Entra
+# authentication. Explicit denials keep pnpm 11's strict install noninteractive.
+allowBuilds:
+  '@vscode/vsce-sign': false
+  keytar: false

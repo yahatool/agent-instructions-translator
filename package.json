@@ -1,0 +1,186 @@
+{
+  "name": "agent-instructions-translator",
+  "displayName": "Agent Instructions Translator",
+  "description": "Keep English AI instruction files synchronized with a native-language companion.",
+  "version": "0.1.0",
+  "publisher": "yahatool",
+  "license": "MIT",
+  "packageManager": "pnpm@11.11.0",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentInstructionsTranslator.translateActiveFile",
+        "title": "Agent Instructions Translator: Translate Active File"
+      },
+      {
+        "command": "agentInstructionsTranslator.syncWorkspace",
+        "title": "Agent Instructions Translator: Sync Workspace"
+      }
+    ],
+    "configuration": {
+      "title": "Agent Instructions Translator",
+      "properties": {
+        "agentInstructionsTranslator.enabled": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Enable automatic translation for this workspace folder. A user-level value enables it for every opened folder unless overridden."
+        },
+        "agentInstructionsTranslator.mode": {
+          "type": "string",
+          "enum": [
+            "nativeToEnglish",
+            "englishToNative",
+            "bidirectional"
+          ],
+          "default": "nativeToEnglish",
+          "description": "Select which file is authoritative."
+        },
+        "agentInstructionsTranslator.provider": {
+          "type": "string",
+          "enum": [
+            "argosTranslate",
+            "deeplCli",
+            "vscodeLm"
+          ],
+          "enumDescriptions": [
+            "Use the platform-specific bundled Argos runtime and ja/en models fully offline.",
+            "Use the DeepL cloud service through a configurable CLI.",
+            "Use a language model exposed by VS Code."
+          ],
+          "default": "argosTranslate",
+          "description": "Translation provider."
+        },
+        "agentInstructionsTranslator.nativeLanguage": {
+          "type": "string",
+          "default": "ja",
+          "description": "BCP 47/native provider language code."
+        },
+        "agentInstructionsTranslator.englishLanguage": {
+          "type": "string",
+          "default": "en",
+          "description": "English provider language code."
+        },
+        "agentInstructionsTranslator.englishFileNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "AGENTS.md",
+            "SKILL.md"
+          ],
+          "description": "Recognized English instruction filenames, in pairing priority order."
+        },
+        "agentInstructionsTranslator.nativeFileName": {
+          "type": "string",
+          "default": "NATIVE.md",
+          "description": "Native-language companion filename."
+        },
+        "agentInstructionsTranslator.defaultEnglishFileName": {
+          "type": "string",
+          "default": "AGENTS.md",
+          "description": "English filename created when only a native file exists."
+        },
+        "agentInstructionsTranslator.exclude": {
+          "type": "string",
+          "default": "**/{node_modules,.git,.build,.agent-instructions-translator}/**",
+          "description": "Glob excluded from discovery."
+        },
+        "agentInstructionsTranslator.outputLayout": {
+          "type": "string",
+          "enum": [
+            "centralizedNative",
+            "alongside",
+            "hiddenMirror"
+          ],
+          "enumDescriptions": [
+            "Keep English files in place and store NATIVE.md under .agent-instructions-translator/native while preserving the project hierarchy.",
+            "Store NATIVE.md beside its English file.",
+            "Write the generated side under the legacy hidden mirror tree."
+          ],
+          "default": "centralizedNative",
+          "description": "Choose where translated companion files are stored."
+        },
+        "agentInstructionsTranslator.stateDirectory": {
+          "type": "string",
+          "default": ".agent-instructions-translator",
+          "description": "Workspace-relative hidden directory for the portable state.json baseline and optional ignored mirror output."
+        },
+        "agentInstructionsTranslator.vscodeLm.vendor": {
+          "type": "string",
+          "default": "copilot",
+          "description": "Optional language-model vendor selector; empty selects any available model."
+        },
+        "agentInstructionsTranslator.vscodeLm.family": {
+          "type": "string",
+          "default": "",
+          "description": "Optional language-model family selector."
+        },
+        "agentInstructionsTranslator.deeplCli.path": {
+          "type": "string",
+          "default": "deepl",
+          "description": "DeepL CLI executable."
+        },
+        "agentInstructionsTranslator.deeplCli.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "translate",
+            "--from",
+            "{sourceLanguage}",
+            "--to",
+            "{targetLanguage}"
+          ],
+          "description": "CLI arguments. Supported placeholders: {sourceLanguage}, {targetLanguage}. Document text is supplied on stdin."
+        },
+        "agentInstructionsTranslator.argosTranslate.path": {
+          "type": "string",
+          "default": "",
+          "description": "Optional Argos CLI override. Leave empty to use the Python-independent runtime and models bundled in the platform-specific VSIX."
+        },
+        "agentInstructionsTranslator.argosTranslate.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "--from-lang",
+            "{sourceLanguage}",
+            "--to-lang",
+            "{targetLanguage}"
+          ],
+          "description": "Argos CLI arguments. Supported placeholders: {sourceLanguage}, {targetLanguage}. Document text is supplied on stdin."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p tsconfig.json",
+    "watch": "tsc -w -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run compile && node scripts/run_tests.mjs",
+    "package": "vsce package",
+    "build:argos": "uv run --python 3.12 python scripts/build_argos_bundle.py",
+    "package:bundled": "npm run compile && npm run build:argos && node scripts/package_bundled.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.95.0",
+    "@vscode/vsce": "^3.2.1",
+    "typescript": "^5.7.2"
+  }
+}

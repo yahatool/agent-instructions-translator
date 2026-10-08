@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "pairs": {
+    "AGENTS.md\u0000.agent-instructions-translator/native/NATIVE.md": {
+      "englishHash": "0f3bdfd08235c6d2ea9ae3b7e0ad1a814bd0f4c5723dc2cdce3bb72f5402defa",
+      "nativeHash": "4ad734d4a0214e207aa5679f095e082ec98e374a496fbc27ef57dbcf04caa7b5",
+      "synchronizedAt": "2026-09-19T13:00:35.000Z"
+    },
+    ".agents/skills/writing-guidelines/SKILL.md\u0000.agent-instructions-translator/native/.agents/skills/writing-guidelines/NATIVE.md": {
+      "englishHash": "89a5f581193289b80af58b980090aeed535047c8df2b55ccbaae0de40283a99d",
+      "nativeHash": "ed180c0981f3cf92fba0820c13214d07e6c85f3c19effb518869e0dec3421ae4",
+      "synchronizedAt": "2026-09-20T03:42:35.000Z"
+    }
+  }
+}
