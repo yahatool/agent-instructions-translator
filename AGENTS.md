@@ -42,6 +42,15 @@ The official English files will be `AGENTS.md` or `SKILL.md`, and the native lan
 - Add unit tests for pure synchronization and mapping logic, keeping VS Code dependencies minimal.
 - Commit the portable `.agent-instructions-translator/state.json` baseline and `.agent-instructions-translator/native/**` source files. Do not commit other translation caches, `.vscode-test`, `node_modules`, compilation output, or secrets.
 
+## Commit Messages
+
+- When generating or creating commit messages, use Conventional Commits: `<type>[optional scope][!]: <description>`.
+- Use a lowercase type from `feat`, `fix`, `perf`, `revert`, `docs`, `style`, `refactor`, `test`, `build`, `ci`, or `chore`. Select the type that reflects the actual change, not a desired version bump.
+- Keep the description concise and specific. Use an optional scope to identify the affected area, for example `fix(frontmatter): preserve quoted values` or `docs: clarify release setup`.
+- Mark breaking changes with `!` before the colon and explain the incompatibility and migration steps in the commit body.
+- Use the same format for PR titles so squash-merge commit messages remain compatible with Release Please. See `CONTRIBUTING.md` for the project conventions.
+- These formatting rules do not authorize committing or pushing without a user request.
+
 ## Verification
 
 Run type checks and unit tests before completing changes. When behavior changes, verify both one-way modes, bidirectional conflict handling, save loop prevention, and file names under nested `skills/*`.
