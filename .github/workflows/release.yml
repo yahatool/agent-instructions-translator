@@ -184,7 +184,7 @@ jobs:
           path: dist
       - name: Verify artifact checksums
         working-directory: dist
-        run: sha256sum --check *.sha256
+        run: sha256sum --check ./*.sha256
       - name: Authenticate with Microsoft Entra ID
         if: env.MARKETPLACE_AUTH_MODE == 'entra'
         uses: azure/login@8216e11d8cd9b42fe925c852af8e76311ff067ac # v2

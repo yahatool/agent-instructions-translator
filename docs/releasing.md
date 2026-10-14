@@ -24,7 +24,9 @@
 | CD | 全ビルド成功後、`marketplace` の手動承認を待ち、承認後に5種類のVSIXを公開 |
 | CD | 公開成功後、下書きReleaseにVSIXとSHA-256チェックサムを添付して確認済みCHANGELOGをノートとして公開 |
 
-チェックの失敗、中程度以上のNode.js依存の脆弱性、シークレット検出、Pythonの脆弱性、実翻訳テストの失敗は公開を止めます。承認者が未設定・削除済みの場合や、承認設定をAPIで確認できない場合も公開を止めます。公開ジョブでも承認ルールを再確認します。チェックが失敗・キャンセル・スキップの場合、`CI passed` も失敗になります。branch protectionではこのチェックを必須に設定してください。
+チェックの失敗、中程度以上のNode.js依存の脆弱性、シークレット検出、Pythonの脆弱性、実翻訳テストの失敗は公開を止めます。承認者が未設定・削除済みの場合や、承認設定をAPIで確認できない場合も公開を止めます。公開ジョブでも承認ルールを再確認します。チェックが失敗・キャンセル・スキップの場合、`CI passed` も失敗になります。
+
+必須チェックはTerraform管理の [github-terraform](https://github.com/yahatool/github-terraform/blob/main/modules/repository/rulesets.tf) に合わせて `lint`・`test`・`package` とします。`lint` は静的チェック・依存監査・シークレット検査を集約し、`test` は3 OSのテストを集約します。`package` はコンパイルとVSIXパッケージングの検証です。この検証用VSIXにはArgosを同梱せず、配布・公開しません。5プラットフォームの同梱版と実翻訳の検証はCDで行います。`CI passed` は3チェック全体を集約する補助チェックとして残します。
 
 パッケージマネージャーは `packageManager` に固定し、`pnpm install --frozen-lockfile` を使います。ActionはコミットSHA、ダウンロードする検査ツールはバージョンとSHA-256で固定しています。Dependabotがnpm依存とActionの更新pull requestを作成します。
 
@@ -48,7 +50,7 @@ PyInstallerはOS・CPUをまたいだビルドができないため、各runner�
 4. 下記のMarketplace認証方式のいずれかを設定します。
 5. 同梱モデルを再配布できることを確認した後、`marketplace` のEnvironment variable `ARGOS_MODEL_REDISTRIBUTION_CONFIRMED` を `true` にします。`runtime/MODEL_NOTICE.md` に現在の確認事項があります。この値がない場合は公開を止めます。
 6. 下記のGitHub Appを作成・インストールし、Client IDと秘密鍵をActionsに登録します。Release Pleaseが生成したPRとタグからCI/CDを起動できるように、Appのインストールトークンを使います。PATや通常の `GITHUB_TOKEN` へのフォールバックは行いません。
-7. Settings → GeneralでSquash mergingを有効にし、デフォルトのコミット件名をPRタイトルにします。mainの保護ルールでPRと `CI passed` を必須にしてください。これらのGitHub設定はファイル追加だけでは変更されません。
+7. Terraformの共通設定で、mainはPR経由・Squash merge限定・PRタイトルをコミット件名に使用し、最新mainへの追従と `lint`・`test`・`package` の成功を必須にしています。`v*` タグの新規作成は許可し、更新・削除は禁止しています。これらのルールをGitHub画面やこのリポジトリのワークフローから変更せず、変更が必要ならTerraform管理元で行います。
 
 Release Pleaseの基準バージョンは現在の `0.1.0`、初回の履歴境界は初期コミット `9157c61` です。既存の0.1.0相当の変更を次回のノートに重複させず、それ以降の変更を対象にします。これは0.1.0をMarketplaceに公開したことを意味しません。初回に履歴全体を含めたい場合は `bootstrap-sha` を外してから運用を開始してください。通常はmanifestやbootstrapを手動更新しません。
 
@@ -93,7 +95,7 @@ Settings → Environments → `marketplace` で次を設定します。
 
 公開リポジトリではGitHub FreeでもRequired reviewersを利用できます。非公開・内部リポジトリで利用するにはEnterpriseが必要です。契約上利用できない場合、この構成は自動公開せず停止します。
 
-デフォルトブランチはPR経由の更新と `CI passed` を必須にする設定を推奨します。リリース用PRは自動マージしません。複数人ならPRレビューも必須にすると、公開内容の確認と公開実行の承認を分担できます。
+デフォルトブランチはTerraformの必須チェックに従い、リリース用PRは自動マージしません。複数人ならTerraform側でPRレビューも必須にすると、公開内容の確認と公開実行の承認を分担できます。
 
 参照: [Environment設定](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments)、[デプロイの承認](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments)。
 

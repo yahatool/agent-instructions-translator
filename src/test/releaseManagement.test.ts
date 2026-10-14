@@ -64,7 +64,7 @@ test("Release Please uses a repository-scoped App token without PAT fallback", (
   for (const permission of ["contents", "pull-requests", "issues"]) {
     assert.match(bot, new RegExp(`permission-${permission}: write`));
   }
-  assert.match(bot, /permissions:\n  contents: read/);
+  assert.match(bot, /permissions:\r?\n  contents: read/);
   assert.match(bot, /test -n "\$APP_CLIENT_ID"/);
   assert.match(bot, /test -n "\$APP_PRIVATE_KEY"/);
   assert.doesNotMatch(bot, /RELEASE_PLEASE_TOKEN|secrets.GITHUB_TOKEN|github.token/);
@@ -86,9 +86,27 @@ test("Conventional Commit PR titles support scopes, breaking changes, and Japane
   assert.doesNotMatch(ci, /\$\{\{ github.event.pull_request.title/);
 });
 
+test("CI exposes Terraform-required contexts with real work and fail-closed gates", () => {
+  const ci = readFileSync(".github/workflows/ci.yml", "utf8").replaceAll("\r\n", "\n");
+  const lint = ci.split("\n  lint:\n")[1]?.split("\n  test:\n")[0] ?? "";
+  assert.match(lint, /name: lint/);
+  assert.match(lint, /if: always\(\)/);
+  assert.match(lint, /needs: \[static-checks, dependency-audit, secret-scan\]/);
+  assert.match(lint, /job\["result"\] == "success"/);
+  const tests = ci.split("\n  test:\n")[1]?.split("\n  package:\n")[0] ?? "";
+  assert.match(tests, /name: test/);
+  assert.match(tests, /needs: tests/);
+  assert.match(tests, /test "\$TEST_RESULT" = success/);
+  const packaging = ci.split("\n  package:\n")[1]?.split("\n  ci:\n")[0] ?? "";
+  assert.match(packaging, /name: package/);
+  assert.match(packaging, /pnpm run compile/);
+  assert.match(packaging, /pnpm exec vsce package --no-dependencies/);
+  assert.match(ci, /needs: \[lint, test, package\]/);
+});
+
 test("publication retains the approval gate and stages assets before making a release public", () => {
   const workflow = readFileSync(".github/workflows/release.yml", "utf8");
-  const publish = workflow.split("\n  publish:\n")[1]?.split("\n  release-assets:\n")[0] ?? "";
+  const publish = workflow.split(/\r?\n  publish:\r?\n/)[1]?.split(/\r?\n  release-assets:\r?\n/)[0] ?? "";
   assert.match(publish, /needs: \[prepare, build\]/);
   assert.match(publish, /environment: marketplace/);
   assert.match(publish, /actions: read/);

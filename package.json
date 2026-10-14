@@ -4,6 +4,10 @@
   "description": "Keep English AI instruction files synchronized with a native-language companion.",
   "version": "0.1.0",
   "publisher": "yahatool",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yahatool/agent-instructions-translator.git"
+  },
   "license": "MIT",
   "packageManager": "pnpm@11.11.0",
   "engines": {
@@ -180,7 +184,7 @@
   "devDependencies": {
     "@types/node": "^22.10.0",
     "@types/vscode": "^1.95.0",
-    "@vscode/vsce": "^3.2.1",
+    "@vscode/vsce": "^4.0.0",
     "typescript": "^5.7.2"
   }
 }

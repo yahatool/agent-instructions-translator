@@ -103,10 +103,56 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
 
+  # Required contexts are managed by yahatool/github-terraform.
+  lint:
+    name: lint
+    if: always()
+    needs: [static-checks, dependency-audit, secret-scan]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require static and security checks
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python -c 'import json, os; results = json.loads(os.environ["RESULTS"]); assert all(job["result"] == "success" for job in results.values()), "Static or security checks failed"'
+
+  test:
+    name: test
+    if: always()
+    needs: tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require all test platforms
+        env:
+          TEST_RESULT: ${{ needs.tests.result }}
+        run: test "$TEST_RESULT" = success
+
+  package:
+    name: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run compile
+      # Validate extension packaging without shipping or publishing a runtime-less VSIX.
+      # Release still builds and smoke-tests all five bundled Argos packages.
+      - name: Validate extension packaging
+        run: pnpm exec vsce package --no-dependencies --out "$RUNNER_TEMP/ci-validation.vsix"
+
   ci:
     name: CI passed
     if: always()
-    needs: [static-checks, dependency-audit, secret-scan, tests]
+    needs: [lint, test, package]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
