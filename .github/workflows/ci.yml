@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
   push:
     branches: ["**"]
   workflow_call:
@@ -28,6 +29,9 @@ jobs:
           python-version: "3.12"
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check
+      - name: Validate Conventional Commit PR title
+        if: github.event_name == 'pull_request'
+        run: node scripts/check_conventional_title.mjs
       - name: Check JavaScript and Python syntax
         run: |
           for script in scripts/*.mjs; do node --check "$script"; done

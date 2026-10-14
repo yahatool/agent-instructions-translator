@@ -48,7 +48,7 @@ npm test
 
 pnpmを使う場合は `pnpm install`、`pnpm run check`、`pnpm test` でも構いません。
 
-GitHub ActionsでCIと5種類のVSIXのビルド・Marketplace公開を実行できます。バージョンとCHANGELOGを更新するリリース用PRを手動で作成・マージし、対象コミットにタグを付けると、VSIXを検証して公開直前の手動承認を待ちます。リリース用PRのテンプレートと、初期設定・公開手順は [docs/releasing.md](docs/releasing.md) を参照してください。公開せずビルドだけを試す手動実行にも対応しています。
+GitHub ActionsでCIと5種類のVSIXのビルド・Marketplace公開を実行できます。Conventional Commits形式のPRタイトルでSquash mergeすると、Release PleaseがバージョンとCHANGELOGを更新するリリースPRを作成します。そのPRをマージするとタグと下書きReleaseを作り、VSIXを検証して公開直前の手動承認を待ちます。[開発ルール](CONTRIBUTING.md) と [初期設定・公開手順](docs/releasing.md) を参照してください。公開せずビルドだけを試す手動実行にも対応しています。
 
 F5キーまたは `Run Extension` デバッグ構成でExtension Development Hostを起動できます。
 

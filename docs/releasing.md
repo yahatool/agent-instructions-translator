@@ -2,9 +2,9 @@
 
 ## ワークフロー
 
-`CI` はpull requestとブランチへのpushで実行します。リリース用PRは、`package.json` のバージョンとCHANGELOGを更新して手動で作成します。人が内容とCIの結果を確認し、デフォルトブランチへマージします。
+`CI` はpull requestとブランチへのpushで実行します。PRタイトルはConventional Commits形式にし、そのタイトルでSquash mergeします。`main` へのpushを受けてRelease Pleaseが `package.json` のバージョン、CHANGELOG、バージョン管理manifestを更新するリリース用PRを作成・更新します。
 
-リリース用PRのマージ後、対象コミットに `vX.Y.Z` タグを付けてpushすると `Release` が開始します。CIと全VSIXの検証後に公開承認を待ち、Marketplaceへの公開が成功してからGitHub Releaseを作成・公開します。リリース用PRのマージだけではCDや公開は開始しません。バージョン更新、PR作成、タグ付けは手動で行います。
+リリース用PRを人がマージすると、Release Pleaseが `vX.Y.Z` タグと下書きGitHub Releaseを作成します。タグpushで `Release` が開始し、CIと全VSIXの検証後に公開承認を待ちます。Marketplace公開成功後にVSIXを添付してGitHub Releaseを公開します。マージだけではMarketplaceやGitHub Releaseは公開されません。
 
 `Release` は `vX.Y.Z-pre` タグやActions画面からの手動実行にも対応します。
 
@@ -14,15 +14,15 @@
 | CI | `pnpm audit --audit-level moderate`。開発・ビルド用パッケージも対象 |
 | CI | Gitleaksによる取得済みGit履歴全体のシークレット検査。検査前に検出動作の自己テストを実行 |
 | CI | Windows・macOS・Linuxで単体テスト |
-| リリース準備 | `package.json` とCHANGELOGを更新するリリース用PRを手動で作成 |
-| リリース準備 | 人がPRをマージし、対象コミットにバージョンタグを付けてpush |
+| リリース準備 | Release PleaseがConventional CommitsからバージョンとCHANGELOGを更新するPRを作成 |
+| リリース準備 | 人がPRをマージすると、タグと下書きGitHub Releaseを自動作成 |
 | CD | CIを同じコミットで再実行し、公開タグと `package.json` のバージョンを照合 |
 | CD | `marketplace` にRequired reviewersが設定されていることを確認し、対象バージョンのCHANGELOGを保存 |
 | CD | 5種類のOS・CPU環境でPythonとArgosの実行物、日英・英日のモデル、VSIXを生成 |
 | CD | ビルド環境にインストールしたPythonパッケージをpip-auditで検査 |
 | CD | VSIXから取り出した実行物で英日・日英の翻訳を実行。モデル・publisher・バージョン・targetも検証 |
 | CD | 全ビルド成功後、`marketplace` の手動承認を待ち、承認後に5種類のVSIXを公開 |
-| CD | 公開成功後、下書きReleaseを作成し、VSIXとSHA-256チェックサムを添付して確認済みCHANGELOGをノートとして公開 |
+| CD | 公開成功後、下書きReleaseにVSIXとSHA-256チェックサムを添付して確認済みCHANGELOGをノートとして公開 |
 
 チェックの失敗、中程度以上のNode.js依存の脆弱性、シークレット検出、Pythonの脆弱性、実翻訳テストの失敗は公開を止めます。承認者が未設定・削除済みの場合や、承認設定をAPIで確認できない場合も公開を止めます。公開ジョブでも承認ルールを再確認します。チェックが失敗・キャンセル・スキップの場合、`CI passed` も失敗になります。branch protectionではこのチェックを必須に設定してください。
 
@@ -47,8 +47,36 @@ PyInstallerはOS・CPUをまたいだビルドができないため、各runner�
 3. Settings → Environments で `marketplace` を作成し、下記の公開承認ルールを設定します。公開するコミットはデフォルトブランチに含まれている必要があります。
 4. 下記のMarketplace認証方式のいずれかを設定します。
 5. 同梱モデルを再配布できることを確認した後、`marketplace` のEnvironment variable `ARGOS_MODEL_REDISTRIBUTION_CONFIRMED` を `true` にします。`runtime/MODEL_NOTICE.md` に現在の確認事項があります。この値がない場合は公開を止めます。
+6. 下記のGitHub Appを作成・インストールし、Client IDと秘密鍵をActionsに登録します。Release Pleaseが生成したPRとタグからCI/CDを起動できるように、Appのインストールトークンを使います。PATや通常の `GITHUB_TOKEN` へのフォールバックは行いません。
+7. Settings → GeneralでSquash mergingを有効にし、デフォルトのコミット件名をPRタイトルにします。mainの保護ルールでPRと `CI passed` を必須にしてください。これらのGitHub設定はファイル追加だけでは変更されません。
+
+Release Pleaseの基準バージョンは現在の `0.1.0`、初回の履歴境界は初期コミット `9157c61` です。既存の0.1.0相当の変更を次回のノートに重複させず、それ以降の変更を対象にします。これは0.1.0をMarketplaceに公開したことを意味しません。初回に履歴全体を含めたい場合は `bootstrap-sha` を外してから運用を開始してください。通常はmanifestやbootstrapを手動更新しません。
+
+`draft: true` と `force-tag-creation: true` を組み合わせ、下書きでもタグを生成して既存CDを起動します。リリースPRの自動マージは行いません。設定の仕様は [Release Please Action](https://github.com/googleapis/release-please-action) と [manifest設定](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md) を参照してください。
 
 GitHubリポジトリのURLは、CI上でパッケージを作る際に `GITHUB_REPOSITORY` からmanifestへ補います。既に `package.json` に `repository` がある場合はその値を使います。
+
+### Release Please用GitHub App（Organization）
+
+1. OrganizationのSettings → Developer settings → GitHub Apps → New GitHub Appを開きます。Organization所有者またはApp管理権限が必要です。
+2. 一意のApp名（例：`yahatool-release-bot`）とHomepage URL（OrganizationのURL）を入力します。Callback URL / Setup URLは空欄、OAuthのユーザー認可とDevice Flowはオフ、WebhookのActiveもオフにします。インストール先はOnly on this accountを選択します。
+3. Repository permissionsのContents / Pull requests / IssuesをRead and writeにします。MetadataはRead-only、Organization permissionsの追加は不要です。
+4. Appを作成したらInstall AppからOrganizationを選び、Only select repositoriesでこのリポジトリにインストールします。作成だけではインストールされません。
+5. GeneralのClient IDを控え、Private keys → Generate a private keyで秘密鍵を発行します。
+6. OrganizationのSettings → Secrets and variables → Actionsに以下を登録し、対象リポジトリにアクセスを許可します。Organizationで共有できない場合は、リポジトリ側の同じ設定画面に登録できます。
+
+| 種別 | 名前 | 内容 |
+| --- | --- | --- |
+| Variable | `RELEASE_PLEASE_APP_CLIENT_ID` | AppのClient ID（Client secretではありません） |
+| Secret | `RELEASE_PLEASE_APP_PRIVATE_KEY` | `.pem` の内容全体。BEGIN/END行と改行を含む |
+
+秘密鍵はGitへ追加せず、チャットやログにも貼り付けないでください。これらは公開前のPR作成にも使うため、`marketplace` EnvironmentではなくOrganizationまたはRepositoryのActions設定に登録します。
+
+ワークフローは実行ごとに現在のリポジトリ限定の短期トークンを生成し、Release Pleaseに渡します。トークンは1時間で失効し、ジョブ終了時にもActionが失効処理を行います。`RELEASE_PLEASE_TOKEN` の固定Secretは不要です。以前登録したものがある場合は、他のワークフローで使っていないことを確認してから削除できます。Marketplace用の `VSCE_PAT` は別の認証情報なので、この変更では置き換わりません。
+
+設定後はmain上でActions → Release Please → Run workflowを実行できます。リリース対象のコミットがない場合はPRを作成しません。認証情報の不足、Appの未インストール、権限不足はエラーになります。
+
+参照: [Appの作成](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app)、[インストール](https://docs.github.com/en/apps/using-github-apps/installing-your-own-github-app)、[トークン生成Action](https://github.com/actions/create-github-app-token)。
 
 ### 公開直前の手動承認
 
@@ -61,7 +89,7 @@ Settings → Environments → `marketplace` で次を設定します。
 
 承認ルールはGitHubのリポジトリ設定です。ワークフローファイルだけでは承認者を登録できません。Required reviewersがない場合は `scripts/check_release_environment.mjs` が公開用の処理を停止します。
 
-公開用runのCIと全ビルドが成功すると、Actionsの実行画面にReview deploymentsが表示されます。ArtifactsからVSIXを取得し、実行画面のSummaryに表示されたリリースノートと動作を確認してApprove and deployを選びます。Rejectした場合はMarketplaceへ公開せず、GitHub Releaseも作成・公開しません。既に下書きReleaseがある場合は、そのまま残ります。
+公開用runのCIと全ビルドが成功すると、Actionsの実行画面にReview deploymentsが表示されます。ArtifactsからVSIXを取得し、実行画面のSummaryに表示されたリリースノートと動作を確認してApprove and deployを選びます。Rejectした場合はMarketplaceへ公開せず、GitHub Releaseは下書きのまま残ります。タグ自体は承認前に作成済みです。
 
 公開リポジトリではGitHub FreeでもRequired reviewersを利用できます。非公開・内部リポジトリで利用するにはEnterpriseが必要です。契約上利用できない場合、この構成は自動公開せず停止します。
 
@@ -102,26 +130,18 @@ Actions → Release → Run workflow でブランチを選択し、`publish` を
 
 ## 正式公開
 
-1. 通常の開発PRをCI通過後にデフォルトブランチへマージします。
-2. リリース用ブランチを作り、`package.json` の `version` とCHANGELOGを更新するPRを手動で作成します。例えば `0.2.0` ならCHANGELOGに `## 0.2.0` の欄を作り、公開する変更内容、既知の問題、必要な移行手順を記載します。Unreleasedの対象項目もこの欄へ移します。
+1. 通常の開発PRをConventional Commits形式のタイトルで、CI通過後にmainへSquash mergeします。
+2. Release Pleaseが作成・更新するリリースPRを開きます。既存Unreleasedの手書き項目は自動移動されないため、必要な項目や既知の問題、移行手順が対象バージョンの欄に含まれることを確認します。ノートを追記した場合は、その後のbot更新でも失われていないか再確認します。
 3. PRのバージョン、CHANGELOG、`CI passed` を確認し、公開したいタイミングで人がマージします。
-4. マージされたコミットへ `vX.Y.Z` タグを付けてpushします。タグは `package.json` のバージョンと一致させます。
+4. Release Pleaseがマージされたリリースに対して `vX.Y.Z` タグと下書きGitHub Releaseを作成します。手動タグ付けは不要です。
 5. `Release` がCI、ビルド、実翻訳の検証を行います。全て成功した後、`marketplace` の公開承認を行います。
-6. Marketplace公開成功後、GitHub Releaseを作成し、5種類のVSIXとチェックサムを添付して公開します。
+6. Marketplace公開成功後、下書きGitHub Releaseに5種類のVSIXとチェックサムを添付して公開します。
 
-例えば `version: "0.2.0"` を公開する場合は、以下の `RELEASE_COMMIT_SHA` をリリース用PRの実際のマージコミットSHAに置き換えます。タグを後続の開発コミットへ付けないよう、対象を確認してください。
-
-```sh
-git fetch origin
-git tag -a v0.2.0 RELEASE_COMMIT_SHA -m "Release v0.2.0"
-git push origin v0.2.0
-```
-
-リリース用PRの本文には [.github/PULL_REQUEST_TEMPLATE/release.md](../.github/PULL_REQUEST_TEMPLATE/release.md) を使えます。GitHubのPR作成URLへ `template=release.md` を追加するか、ファイルの内容を本文へコピーします。テンプレートはデフォルトブランチへの反映後に利用できます。[GitHubのPRテンプレートの説明](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository)
+Release PleaseのPR本文にはbotが追跡に使用する情報があります。本文全体を手動テンプレートに置き換えないでください。[リリースチェックリスト](../.github/PULL_REQUEST_TEMPLATE/release.md) は確認用に使えます。
 
 リリースノートにはタグ時点のCHANGELOGの対象バージョン欄を使います。承認前にその内容をSummaryと `release-notes` Artifactへ保存し、公開時も同じファイルを使います。公開時に別の自動生成ノートへ置き換えることはありません。
 
-バージョンは変更内容に応じて手動で決めます。コミットメッセージの形式は必須ではありません。`1.x` 以降は、互換性を保った修正はパッチ、機能追加はマイナー、互換性のない変更はメジャー更新を基本とします。初期開発中の `0.x` は、互換性がまだ安定していない段階として扱います。
+バージョンはコミットから決まります。`fix` / `perf` はpatch、`feat` はminor、`!` を付けた破壊的変更は `0.x` ではminor、`1.x` 以降はmajorです。`docs` / `ci` / `chore` だけでは通常リリースPRは作られません。形式と例は [CONTRIBUTING.md](../CONTRIBUTING.md) を参照してください。
 
 | 変更の例 | 初期開発中の更新例 |
 | --- | --- |
