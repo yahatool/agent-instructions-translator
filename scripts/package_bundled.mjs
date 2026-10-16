@@ -32,6 +32,9 @@ const result = spawnSync(
     "node_modules/@vscode/vsce/vsce",
     "package",
     "--no-dependencies",
+    // PyInstaller's macOS framework layout contains directory symlinks.
+    // Traverse them so VSCE scans and archives their files, not directories.
+    "--follow-symlinks",
     "--target",
     target,
     "--ignore-other-target-folders",

@@ -38,6 +38,10 @@ class OfflineSentencizer:
 
 
 def main() -> int:
+    # Pipes use the Windows locale encoding unless explicitly configured.
+    # The extension and VSIX verifier always send and receive UTF-8.
+    sys.stdin.reconfigure(encoding="utf-8", newline="")
+    sys.stdout.reconfigure(encoding="utf-8", newline="")
     parser = argparse.ArgumentParser(description="Bundled offline Argos translator")
     parser.add_argument("--from-lang", required=True)
     parser.add_argument("--to-lang", required=True)
