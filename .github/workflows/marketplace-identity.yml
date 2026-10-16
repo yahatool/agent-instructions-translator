@@ -1,0 +1,60 @@
+name: Marketplace identity setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      client_id:
+        description: Entra Application (client) ID
+        required: true
+        type: string
+      tenant_id:
+        description: Entra Directory (tenant) ID
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  identity:
+    name: Get Marketplace identity ID
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      id-token: write
+    steps:
+      - name: Validate identity inputs
+        env:
+          CLIENT_ID: ${{ inputs.client_id }}
+          TENANT_ID: ${{ inputs.tenant_id }}
+        run: |
+          uuid='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+          if [[ ! "$CLIENT_ID" =~ $uuid || ! "$TENANT_ID" =~ $uuid ]]; then
+            echo 'Client ID and tenant ID must be UUIDs.'
+            exit 1
+          fi
+      - name: Authenticate with Microsoft Entra ID
+        uses: azure/login@8216e11d8cd9b42fe925c852af8e76311ff067ac # v2
+        with:
+          client-id: ${{ inputs.client_id }}
+          tenant-id: ${{ inputs.tenant_id }}
+          allow-no-subscriptions: true
+      - name: Show Marketplace identity ID
+        run: |
+          identity_id=$(az rest \
+            --method get \
+            --url https://app.vssps.visualstudio.com/_apis/profile/profiles/me \
+            --resource 499b84ac-1321-427f-aa17-267ca6975798 \
+            --query id \
+            --output tsv \
+            --only-show-errors)
+          if [[ ! "$identity_id" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
+            echo 'Marketplace returned no valid identity ID.'
+            exit 1
+          fi
+          printf 'Marketplace identity ID: %s\n' "$identity_id"
+          {
+            printf '## Marketplace identity\n\n'
+            printf 'Publisher member ID: %s\n\n' "$identity_id"
+            printf 'Add this ID to your Marketplace publisher with the Contributor role. No extension was published.\n'
+          } >> "$GITHUB_STEP_SUMMARY"
