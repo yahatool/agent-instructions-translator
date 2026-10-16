@@ -10,6 +10,13 @@
 - Support PAT and Microsoft Entra ID authentication for Marketplace publication.
 - Store versioned VSIX artifacts in `dist/` and make the test runner portable across operating systems.
 
+## [0.1.1](https://github.com/yahatool/agent-instructions-translator/compare/v0.1.0...v0.1.1) (2026-10-16)
+
+
+### Bug Fixes
+
+* **build:** follow runtime symlinks and enforce UTF-8 pipes ([8ad4e99](https://github.com/yahatool/agent-instructions-translator/commit/8ad4e99c0be33c0381ecd32edbd3eb3df10cbd26))
+
 ## 0.1.0
 
 - Add activation-time and save-time instruction translation.
