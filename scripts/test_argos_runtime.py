@@ -27,15 +27,16 @@ sys.argv = [sys.argv[1], '--from-lang', sys.argv[2], '--to-lang', sys.argv[3]]
 runpy.run_path(sys.argv[0], run_name='__main__')
 """
         for source, target in (("ja", "en"), ("en", "ja")):
-            with self.subTest(source=source, target=target):
-                text = "こんにちは世界。 café\n"
-                result = subprocess.run(
-                    [sys.executable, "-c", bootstrap, str(runtime), source, target],
-                    input=text.encode("utf-8"), capture_output=True, timeout=10,
-                    env={**os.environ, "PYTHONIOENCODING": "ascii", "ARGOS_PACKAGES_DIR": "test-models"},
-                )
-                self.assertEqual(result.returncode, 0, result.stderr.decode("utf-8", errors="replace"))
-                self.assertEqual(result.stdout.decode("utf-8"), text)
+            for newline in ("\n", "\r\n"):
+                with self.subTest(source=source, target=target, newline=repr(newline)):
+                    text = f"こんにちは世界。 café{newline}次の行。{newline}"
+                    result = subprocess.run(
+                        [sys.executable, "-c", bootstrap, str(runtime), source, target],
+                        input=text.encode("utf-8"), capture_output=True, timeout=10,
+                        env={**os.environ, "PYTHONIOENCODING": "ascii", "ARGOS_PACKAGES_DIR": "test-models"},
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr.decode("utf-8", errors="replace"))
+                    self.assertEqual(result.stdout.decode("utf-8"), text)
 
 
 if __name__ == "__main__":
