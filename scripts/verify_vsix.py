@@ -57,8 +57,14 @@ def main() -> int:
             result = subprocess.run(
                 [str(executable), "--from-lang", source, "--to-lang", target],
                 input=text, text=True, encoding="utf-8", capture_output=True,
-                env=environment, check=True, timeout=120,
+                env=environment, check=False, timeout=120,
             )
+            if result.returncode != 0:
+                # Only smoke-test input is used here; never real documents.
+                raise RuntimeError(
+                    f"Packaged runtime failed: {source} -> {target} "
+                    f"(exit {result.returncode})\n{result.stderr[-4000:]}"
+                )
             if result.stdout.strip() == text or not re.search(expected, result.stdout):
                 raise RuntimeError(f"Translation smoke test failed: {source} -> {target}")
             print(f"Packaged runtime smoke test passed: {source} -> {target}")
