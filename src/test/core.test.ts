@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import test from "node:test";
 import {
   centralizedNativePath,
@@ -92,7 +93,7 @@ test("centralized native paths preserve the English file hierarchy", () => {
       "/workspace/project/skills/reviewer/SKILL.md",
       "NATIVE.md",
     ),
-    "/workspace/project/.agent-instructions-translator/native/skills/reviewer/NATIVE.md",
+    path.normalize("/workspace/project/.agent-instructions-translator/native/skills/reviewer/NATIVE.md"),
   );
   assert.equal(
     englishDirectoryForCentralizedNative(
@@ -100,6 +101,6 @@ test("centralized native paths preserve the English file hierarchy", () => {
       ".agent-instructions-translator",
       "/workspace/project/.agent-instructions-translator/native/skills/reviewer/NATIVE.md",
     ),
-    "/workspace/project/skills/reviewer",
+    path.normalize("/workspace/project/skills/reviewer"),
   );
 });

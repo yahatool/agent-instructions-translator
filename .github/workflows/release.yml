@@ -184,7 +184,7 @@ jobs:
           path: dist
       - name: Verify artifact checksums
         working-directory: dist
-        run: sha256sum --check *.sha256
+        run: sha256sum --check ./*.sha256
       - name: Authenticate with Microsoft Entra ID
         if: env.MARKETPLACE_AUTH_MODE == 'entra'
         uses: azure/login@8216e11d8cd9b42fe925c852af8e76311ff067ac # v2
@@ -192,6 +192,15 @@ jobs:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           allow-no-subscriptions: true
+      - name: Show Marketplace identity ID
+        if: env.MARKETPLACE_AUTH_MODE == 'entra'
+        run: |
+          az rest \
+            --method get \
+            --url https://app.vssps.visualstudio.com/_apis/profile/profiles/me \
+            --resource 499b84ac-1321-427f-aa17-267ca6975798 \
+            --query id \
+            --output tsv
       - name: Publish every platform package
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}

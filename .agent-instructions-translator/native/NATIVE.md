@@ -42,6 +42,15 @@
 - 純粋な同期とマッピングロジックのユニットテストを追加し、VSコードの依存関係を最小限に保ちます。
 - ポータブル`.agent-instructions-translator/state.json`ベースラインと`.agent-instructions-translator/native/**`ソースファイルをコミットします。 他の翻訳キャッシュ、`.vscode-test`、`node modules`、コンパイル出力、またはシークレットをコミットしないでください。
 
+## コミットメッセージ
+
+- コミットメッセージを生成・作成するときは、Conventional Commits形式の `<type>[optional scope][!]: <description>` を使用する。
+- typeは小文字の `feat`、`fix`、`perf`、`revert`、`docs`、`style`、`refactor`、`test`、`build`、`ci`、`chore` から選ぶ。希望するバージョンアップではなく、実際の変更内容に合うtypeを選ぶ。
+- 説明は簡潔かつ具体的にする。必要に応じてscopeで対象範囲を示す。例：`fix(frontmatter): preserve quoted values`、`docs: clarify release setup`。
+- 破壊的変更にはコロンの直前に `!` を付け、互換性がなくなる点と移行手順をコミット本文に記載する。
+- Squash merge後のコミットもRelease Pleaseで処理できるよう、PRタイトルにも同じ形式を使用する。プロジェクトの規約は `CONTRIBUTING.md` を参照する。
+- この形式の指示は、ユーザーから依頼されていないコミットやpushを許可するものではない。
+
 ## 検証
 
 変更を完了する前に、タイプチェックとユニットテストを実行します。 振る舞いが変化したら、片道モード、双方向の衝突処理、ループ防止、およびネストされた `skills/*` の下のファイル名の両方を検証します。

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -35,21 +35,78 @@ test("manual release PRs include a version, changelog, and approval checklist", 
   assert.match(template, /マージだけでは公開されません/);
 });
 
-test("release automation does not depend on a release PR bot or its configuration", () => {
-  for (const file of [".github/workflows/release-please.yml", "release-please-config.json", ".release-please-manifest.json"]) {
-    assert.equal(existsSync(file), false, `${file} must not be required`);
-  }
-  for (const file of readdirSync(".github/workflows").filter((name) => /\.ya?ml$/.test(name))) {
-    const workflow = readFileSync(path.join(".github/workflows", file), "utf8");
-    assert.doesNotMatch(workflow, /release-please|RELEASE_PLEASE_TOKEN/i);
-  }
+test("release automation creates draft releases and tags while retaining tag-triggered CD", () => {
+  const config = JSON.parse(readFileSync("release-please-config.json", "utf8"));
+  const root = config.packages["."];
+  assert.equal(root["release-type"], "node");
+  assert.equal(root.draft, true);
+  assert.equal(root["force-tag-creation"], true);
+  assert.equal(root["include-component-in-tag"], false);
+  assert.equal(root["include-v-in-tag"], true);
+  assert.equal(root["bump-minor-pre-major"], true);
+  assert.equal(root["bump-patch-for-minor-pre-major"], false);
+  const manifest = JSON.parse(readFileSync(".release-please-manifest.json", "utf8"));
+  assert.equal(manifest["."], JSON.parse(readFileSync("package.json", "utf8")).version);
+  const bot = readFileSync(".github/workflows/release-please.yml", "utf8");
+  assert.match(bot, /googleapis\/release-please-action@[a-f0-9]{40}/);
+  assert.match(bot, /token: \$\{\{ steps.app-token.outputs.token \}\}/);
+  assert.match(bot, /branches: \[main\]/);
+  assert.doesNotMatch(bot, /secrets.GITHUB_TOKEN|github.token/);
   const release = readFileSync(".github/workflows/release.yml", "utf8");
   assert.match(release, /push:\s*tags: \["v\*"\]/);
 });
 
+test("Release Please uses a repository-scoped App token without PAT fallback", () => {
+  const bot = readFileSync(".github/workflows/release-please.yml", "utf8");
+  assert.match(bot, /actions\/create-github-app-token@[a-f0-9]{40}/);
+  assert.match(bot, /client-id: \$\{\{ vars.RELEASE_PLEASE_APP_CLIENT_ID \}\}/);
+  assert.match(bot, /private-key: \$\{\{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY \}\}/);
+  for (const permission of ["contents", "pull-requests", "issues"]) {
+    assert.match(bot, new RegExp(`permission-${permission}: write`));
+  }
+  assert.match(bot, /permissions:\r?\n  contents: read/);
+  assert.match(bot, /test -n "\$APP_CLIENT_ID"/);
+  assert.match(bot, /test -n "\$APP_PRIVATE_KEY"/);
+  assert.doesNotMatch(bot, /RELEASE_PLEASE_TOKEN|secrets.GITHUB_TOKEN|github.token/);
+  assert.doesNotMatch(bot, /^\s*(owner|repositories|skip-token-revoke):/m);
+});
+
+test("Conventional Commit PR titles support scopes, breaking changes, and Japanese", () => {
+  for (const title of ["feat: add provider", "fix(frontmatter): 引用符を保持", "feat(sync)!: change layout", "chore(main): release 0.2.0", "docs: examples"]) {
+    const result = runModule("scripts/check_conventional_title.mjs", "module.validateTitle(input);", title);
+    assert.equal(result.status, 0, result.stderr);
+  }
+  for (const title of ["Update files", "feat:no space", "fix: ", "feat(): empty scope", "feat: first\nsecond", "unknown: change", null]) {
+    const result = runModule("scripts/check_conventional_title.mjs", "module.validateTitle(input);", title);
+    assert.equal(result.status, 1);
+  }
+  const ci = readFileSync(".github/workflows/ci.yml", "utf8");
+  assert.match(ci, /types: \[opened, synchronize, reopened, edited, ready_for_review\]/);
+  assert.match(ci, /node scripts\/check_conventional_title.mjs/);
+  assert.doesNotMatch(ci, /\$\{\{ github.event.pull_request.title/);
+});
+
+test("CI exposes Terraform-required contexts with real work and fail-closed gates", () => {
+  const ci = readFileSync(".github/workflows/ci.yml", "utf8").replaceAll("\r\n", "\n");
+  const lint = ci.split("\n  lint:\n")[1]?.split("\n  test:\n")[0] ?? "";
+  assert.match(lint, /name: lint/);
+  assert.match(lint, /if: always\(\)/);
+  assert.match(lint, /needs: \[static-checks, dependency-audit, secret-scan\]/);
+  assert.match(lint, /job\["result"\] == "success"/);
+  const tests = ci.split("\n  test:\n")[1]?.split("\n  package:\n")[0] ?? "";
+  assert.match(tests, /name: test/);
+  assert.match(tests, /needs: tests/);
+  assert.match(tests, /test "\$TEST_RESULT" = success/);
+  const packaging = ci.split("\n  package:\n")[1]?.split("\n  ci:\n")[0] ?? "";
+  assert.match(packaging, /name: package/);
+  assert.match(packaging, /pnpm run compile/);
+  assert.match(packaging, /pnpm exec vsce package --no-dependencies/);
+  assert.match(ci, /needs: \[lint, test, package\]/);
+});
+
 test("publication retains the approval gate and stages assets before making a release public", () => {
   const workflow = readFileSync(".github/workflows/release.yml", "utf8");
-  const publish = workflow.split("\n  publish:\n")[1]?.split("\n  release-assets:\n")[0] ?? "";
+  const publish = workflow.split(/\r?\n  publish:\r?\n/)[1]?.split(/\r?\n  release-assets:\r?\n/)[0] ?? "";
   assert.match(publish, /needs: \[prepare, build\]/);
   assert.match(publish, /environment: marketplace/);
   assert.match(publish, /actions: read/);

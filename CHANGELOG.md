@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Authenticate Release Please with a repository-scoped GitHub App installation token instead of a stored PAT.
+- Add Conventional Commit PR title checks and Release Please automation with draft releases and the existing publication approval gate.
 - Add a manual release PR template and required Marketplace approval checks, and publish reviewed CHANGELOG notes with GitHub Release assets after deployment.
 - Add GitHub Actions CI for static checks, dependency audits, secret scanning, and tests on Windows/macOS/Linux.
 - Add release builds for five platform-specific VSIX packages, packaged-runtime smoke tests, Marketplace publication, and GitHub Release assets.
