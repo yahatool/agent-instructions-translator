@@ -55,6 +55,6 @@ jobs:
           printf 'Marketplace identity ID: %s\n' "$identity_id"
           {
             printf '## Marketplace identity\n\n'
-            printf 'Publisher member ID: `%s`\n\n' "$identity_id"
+            printf 'Publisher member ID: %s\n\n' "$identity_id"
             printf 'Add this ID to your Marketplace publisher with the Contributor role. No extension was published.\n'
           } >> "$GITHUB_STEP_SUMMARY"
