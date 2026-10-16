@@ -11,7 +11,7 @@
   "license": "MIT",
   "packageManager": "pnpm@11.11.0",
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.140.0"
   },
   "categories": [
     "Other",
@@ -182,9 +182,9 @@
     "package:bundled": "npm run compile && npm run build:argos && node scripts/package_bundled.mjs"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
-    "@types/vscode": "^1.95.0",
+    "@types/node": "^26.6.5",
+    "@types/vscode": "^1.140.0",
     "@vscode/vsce": "^4.0.0",
-    "typescript": "^5.7.2"
+    "typescript": "^7.0.2"
   }
 }
