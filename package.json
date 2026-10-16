@@ -2,7 +2,7 @@
   "name": "agent-instructions-translator",
   "displayName": "Agent Instructions Translator",
   "description": "Keep English AI instruction files synchronized with a native-language companion.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "publisher": "yahatool",
   "repository": {
     "type": "git",

@@ -10,6 +10,17 @@
 - Support PAT and Microsoft Entra ID authentication for Marketplace publication.
 - Store versioned VSIX artifacts in `dist/` and make the test runner portable across operating systems.
 
+## [0.2.0](https://github.com/yahatool/agent-instructions-translator/compare/v0.1.1...v0.2.0) (2026-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** VS Code 1.140.0 or newer is required to match the updated VS Code API types. Upgrade VS Code before installing the extension.
+
+### Build System
+
+* **deps:** consolidate Dependabot updates ([#15](https://github.com/yahatool/agent-instructions-translator/issues/15)) ([e630c1d](https://github.com/yahatool/agent-instructions-translator/commit/e630c1d3685cad04ca91f30756ccfbf797a05801)), closes [#1](https://github.com/yahatool/agent-instructions-translator/issues/1) [#2](https://github.com/yahatool/agent-instructions-translator/issues/2) [#4](https://github.com/yahatool/agent-instructions-translator/issues/4) [#5](https://github.com/yahatool/agent-instructions-translator/issues/5) [#6](https://github.com/yahatool/agent-instructions-translator/issues/6) [#7](https://github.com/yahatool/agent-instructions-translator/issues/7) [#9](https://github.com/yahatool/agent-instructions-translator/issues/9) [#11](https://github.com/yahatool/agent-instructions-translator/issues/11)
+
 ## [0.1.1](https://github.com/yahatool/agent-instructions-translator/compare/v0.1.0...v0.1.1) (2026-10-16)
 
 
