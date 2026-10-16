@@ -124,6 +124,17 @@ PATはソースコードや設定ファイルへ書かず、GitHubのsecretと�
 
 参照: [VS Codeの公開・Entra ID認証手順](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#secure-automated-publishing-to-visual-studio-marketplace)、[Azure LoginのOIDC設定](https://github.com/Azure/login#login-with-openid-connect-oidc)。
 
+### 初期設定用のID取得だけを手動実行する
+
+`Marketplace identity setup` はEntraログインとMarketplaceのprofile API参照だけを行い、IDをログとSummaryへ表示します。checkout、依存インストール、VSIXビルド、公開処理は行いません。`marketplace` Environmentを使わないため、公開承認や `v*` タグの制限にも依存しません。
+
+1. 同じEntraアプリのCertificates & secrets → Federated credentials → Add credentialでGitHub Actionsを選び、Organizationを `yahatool`、Repositoryを `agent-instructions-translator`、Entity typeを **Branch**、Branchを **main** にして追加します。既定のsubjectは `repo:yahatool/agent-instructions-translator:ref:refs/heads/main`、issuerは `https://token.actions.githubusercontent.com`、audienceは `api://AzureADTokenExchange` です。公開用のEnvironment資格情報は保持します。Organizationがsubjectをカスタマイズしている場合は実際の値に合わせます。
+2. このワークフローをmainへマージします。
+3. Actions → **Marketplace identity setup** → Run workflowで **main** を選び、同じアプリのClient IDとTenant IDを入力して実行します。これらはIDであり、秘密鍵・Client secret・アクセストークンは入力しません。Environment変数はこのワークフローから参照できないため入力欄で指定します。
+4. 成功後、Summaryの **Publisher member ID** をMarketplaceのpublisherのメンバー管理でContributorとして登録します。Client IDやEntraのObject IDではなく、ここで取得したIDを使います。
+
+このワークフローはデフォルトブランチからの手動実行だけを処理します。ID取得時点でMarketplaceの公開権限は不要です。Azureログインに失敗する場合はBranch用の信頼設定とIDを確認してください。profile APIに失敗する場合は実行ログのAPIエラーを確認します。初期設定後、Branch用のフェデレーション資格情報を削除してもEnvironment用資格情報による通常公開には影響しません。
+
 ## 公開せずビルドを試す
 
 Actions → Release → Run workflow でブランチを選択し、`publish` をオフのまま実行します。認証情報やモデル再配布確認用の変数を設定しなくても、CIと5種類のVSIXビルドを実行できます。成功したVSIXとチェックサムはArtifactsに14日間保存します。各VSIXは約250 MBになるため、5種類分の保存容量を見込んでください。
